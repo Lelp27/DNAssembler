@@ -5,6 +5,6 @@ This program is developed for DNA assembly such as golden gate assembly.
 
 It can use for just assemble the DNA or Additional Run thermocycler involved in OT2.
 
-[](/OT2_assembler-deck.png)
+![Deck_position](/OT2_assembler-deck.png)
 
 ## Usage
