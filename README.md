@@ -1,4 +1,4 @@
-# DNAssembler
+# DNA assembly builder (dasbuilder) with OT2
 
 DNA assembly script with OT2 liquid handler.
 This program is developed for DNA assembly such as golden gate assembly.
