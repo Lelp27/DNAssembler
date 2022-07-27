@@ -1,13 +1,10 @@
 import sys
-import pandas as pd
-
-sys.path.append('/mnt/c/workspace/git/automated-protocol-ot2/protocols/DNAssembly')
 
 class dna:
     # Basic information
     ## MW can calculate with python or Excel.
     ## MW & name is necessary
-    def __init__(self, name, MW=None, vol=None, No=None, well=None, plate="EXT", external=True):
+    def __init__(self, name, MW=None, vol=None, No=None, well=None, plate="EXT"):
         #self.length = length
         #self.conc = conc
         self.MW = MW
@@ -16,11 +13,6 @@ class dna:
         self.No = No
         self.well = well
         self.plate = plate
-
-        if external:
-            self.necessary_parameter()
-        else:
-            pass
 
     def necessary_parameter(self):
         if (self.vol == None) & (self.MW == None):
@@ -39,24 +31,28 @@ class dna:
         final = round(goal_MW/self.MW, 2)
         return (final)
 
-def internal_part_check(part_order, db):
+# 220726
+def input_parts_check(uni_parts, db):
+    for i1 in uni_parts:
+        if i1 in db['No'].values:
+            continue
+        else:
+            print (f"Break! {i1} isn't in DB")
+            #sys.exit('Parts No Error')
+    print ("Input Part checked")
+
+def internal_part_to_dna_form(uni_parts, db):
+    tmp = db[db["No"] == uni_parts]
+    tmp_dna = dna(
+        name = tmp.Name.values[0],
+        MW = tmp.MW.values[0],
+        well = tmp.Well.values[0],
+        No = tmp.No.values[0],
+        plate = tmp.plate.values[0],
+        vol = tmp.vol.values[0],
+        external=False)
     
-    for i1 in part_order:
-        for i2 in i1:
-            if type(i2) == dna:
-                # External DNA
-                continue
-            if i2 in db['No'].values:
-                continue
-            else:
-                print (f"Break! {i2} in {i1} isn't in DB")
-                sys.exit("Exit Protocol")
-    print ("Internal Part Checked")
+    return (tmp_dna)
 
-path = '/mnt/c/workspace/git/automated-protocol-ot2/protocols/DNAssembly/assembly_input.xlsx'
-df = pd.read_excel(path)['DNA'].values
-df = [i.split('_') for i in df]
-
-print (f"Final Well number: {len(df)}")
-dna_parts = list(set(sum(df, [])))
-
+## tmp_dna's well The well's architechture is from opentrons 24 wells plate.
+EXT_dna_wells = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6']
