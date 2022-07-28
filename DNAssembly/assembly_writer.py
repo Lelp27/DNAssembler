@@ -1,3 +1,4 @@
+from signal import SIG_DFL
 import sys
 sys.path.append('/mnt/c/workspace/git/DNAssembler/DNAssembly')
 import pandas as pd
@@ -43,31 +44,63 @@ db_path = '/mnt/c/workspace/git/DNAssembler/DNAssembly/Part_DB_ot2.xlsx'
 db = pd.read_excel(db_path)
 
 ## input parameter
-df = pd.read_excel(input_path)
-vec_vol = df.iloc()[0,1]
+wells = pd.read_excel(input_path).iloc()[:,:3].fillna(0)
+well_parts = [i.split('_') for i in wells['DNA']]
+uni_parts = list(set(sum(well_parts, [])))
+part_check(uni_parts, db)
+parameter_check(wells)
 
-df = df['DNA'].values
-well_parts = sum([i.split('_') for i in df], [])
-uni_parts = list(set(well_parts))
-
-print (f"Final Well number: {len(df)}")
-print (f"Parts: {uni_parts}")
-input_parts_check(uni_parts, db)
+print (f"Final Well number: {len(wells['DNA'])}")
+print (f"Used Parts: {uni_parts}")
 
 ## convert to dna class
 part_dna = [internal_part_to_dna_form(i, db) for i in uni_parts]
-ext_dna = [i for i in part_dna if i.plate == 'EXT']
+ext_dna = [i for i in part_dna if i.plate == 'ext']
 
 n=0
 for i in ext_dna:
-    i.well = EXT_dna_wells[n]
+    i.well = EXT_wells[n]
     n+=1
 
 plates = list(set([i.plate for i in part_dna]))
 
 
-set_part_to_assembly()
+#==
+def assembly(DNA, target_MW, final_volume):
+    n = 0
+    No_list, name_list, vol_list, well_dict = [], [], [], {}
+    for i2, mw in zip(DNA, target_MW):
+        vol, dil = check_dilution(i2, mw)
+        well_dict[f'part{n}'] = {'well': i2.well, 'vol':vol, 'dil':dil, 'plate':i2.plate}
+        No_list.append(i2.No)
+        name_list.append(i2.name)
+        vol_list.append(vol)
+        n+=1
+    meta_data = {
+        'No':'_'.join(No_list),
+        'name':'_'.join(name_list),
+        'DW': round((final_volume*4/5) - sum(vol_list), 2)
+        }
+    well_dict['meta'] = meta_data
 
+    return (well_dict)
+
+def set_part_to_assembly(part_dna, n2, target_MW, final_volume, n1=0):
+    
+    if n1 == n2:
+        parts = []
+        for i in range(n2):
+            parts.append(eval(f"part{i}"))
+        yield assembly(DNA=parts, target_MW = target_MW, final_volume=final_volume)
+    else:
+        for globals()[f'part{n1}'] in part_dna[0+n1]:
+            yield from set_part_to_assembly(part_dna, n2=n2, target_MW=target_MW, final_volume=final_volume, n1 = n1+1)
+#==
+
+for i in wells.values:
+    n = 0
+    No_list, name_list, vol_list, well_dict = [], [], [], {}
+    for i2, mw in zip(i[0])
 
 
 
