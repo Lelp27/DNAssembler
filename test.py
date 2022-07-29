@@ -8,30 +8,35 @@ from math import floor
 parameters = [date, meta_data, enzyme_mix_vol, load_plate]
 """
 
-metadata = {{
+metadata = {
     'protocolName': 'Golden gate assembly used by SBL (96 well plate based)',
     'author': 'Seong-Kun Bak <tjdrns27@kribb.re.kr>',
     'apiLevel': '2.11',
     'description': 'Simultaneous part assembly with different part combination',
-    'date' : '{date}'
-}}
+    'date' : '07/29/22'
+}
 
 # Parameters from protocol writer.
 
-META_DATA = {meta_data}
+META_DATA = {'well1': {'part0': {'plate': 'ext', 'well': 'A1', 'vol': '2'}, 'part1': {'plate': 'pro', 'well': 'A1', 'vol': '2'}, 'part2': {'plate': 'rbs', 'well': 'A1', 'vol': '3'}, 'part3': {'plate': 'ter', 'well': 'B10', 'vol': '1'}, 'meta': {'No': 'v1_p1_r1_t22', 'name': 'pACBB_BBa_I14018_BBa_J61100_L1U4H07', 'DW': 8.0}}, 'well2': {'part0': {'plate': 'ext', 'well': 'A1', 'vol': '1'}, 'part1': {'plate': 'pro', 'well': 'A1', 'vol': '1'}, 'part2': {'plate': 'rbs', 'well': 'B6', 'vol': '1'}, 'part3': {'plate': 'ter', 'well': 'B10', 'vol': '1'}, 'meta': {'No': 'v1_p1_r18_t22', 'name': 'pACBB_BBa_I14018_BBa_B0072_L1U4H07', 'DW': 12.0}}, 'well3': {'part0': {'plate': 'ext', 'well': 'A1', 'vol': '5'}, 'part1': {'plate': 'pro', 'well': 'A5', 'vol': '3'}, 'part2': {'plate': 'rbs', 'well': 'A12', 'vol': '1'}, 'part3': {'plate': 'ter', 'well': 'C1', 'vol': '1'}, 'meta': {'No': 'v1_p5_r12_t25', 'name': 'pACBB_BBa_J23111_BBa_J61135_L3S1P56', 'DW': 6.0}}, 'part': ['p5', 't25', 'v1', 'r1', 'r18', 'r12', 'p1', 't22'], 'plate': ['ter', 'pro', 'rbs'], 'EXT': {'v1': 'A1'}}
 
+
+# Load assembled well data
+meta_data = {'well1': {'part0': {'plate': 'ext', 'well': 'A1', 'vol': '2'}, 'part1': {'plate': 'pro', 'well': 'A1', 'vol': '2'}, 'part2': {'plate': 'rbs', 'well': 'A1', 'vol': '3'}, 'part3': {'plate': 'ter', 'well': 'B10', 'vol': '1'}, 'meta': {'No': 'v1_p1_r1_t22', 'name': 'pACBB_BBa_I14018_BBa_J61100_L1U4H07', 'DW': 8.0}}, 'well2': {'part0': {'plate': 'ext', 'well': 'A1', 'vol': '1'}, 'part1': {'plate': 'pro', 'well': 'A1', 'vol': '1'}, 'part2': {'plate': 'rbs', 'well': 'B6', 'vol': '1'}, 'part3': {'plate': 'ter', 'well': 'B10', 'vol': '1'}, 'meta': {'No': 'v1_p1_r18_t22', 'name': 'pACBB_BBa_I14018_BBa_B0072_L1U4H07', 'DW': 12.0}}, 'well3': {'part0': {'plate': 'ext', 'well': 'A1', 'vol': '5'}, 'part1': {'plate': 'pro', 'well': 'A5', 'vol': '3'}, 'part2': {'plate': 'rbs', 'well': 'A12', 'vol': '1'}, 'part3': {'plate': 'ter', 'well': 'C1', 'vol': '1'}, 'meta': {'No': 'v1_p5_r12_t25', 'name': 'pACBB_BBa_J23111_BBa_J61135_L3S1P56', 'DW': 6.0}}, 'part': ['p5', 't25', 'v1', 'r1', 'r18', 'r12', 'p1', 't22'], 'plate': ['ter', 'pro', 'rbs'], 'EXT': {'v1': 'A1'}}
 
 def run(protocol: protocol_api.ProtocolContext):
 
     ## get global parameters
-    well_data = META_DATA['well_data']
+    well_data = meta_data[:-1]
 
     # Deck Setting
     ## Modules  
     module_thermocycler = protocol.load_module("thermocycler Module")
 
     ## Racks
-    {load_plate}
+    globals()['ter'] = protocol.load_labware('biorad_96_wellplate_200ul_pcr', 1)
+    globals()['pro'] = protocol.load_labware('biorad_96_wellplate_200ul_pcr', 2)
+    globals()['rbs'] = protocol.load_labware('biorad_96_wellplate_200ul_pcr', 3)
 
     assemble_plate = module_thermocycler.load_labware("biorad_96_wellplate_200ul_pcr")
     EXT = protocol.load_labware('opentrons_24_tuberack_eppendorf_1.5ml_safelock_snapcap', 9)
@@ -135,7 +140,7 @@ def run(protocol: protocol_api.ProtocolContext):
         dest = assemble_plate.wells()[i]
 
         for i2 in range(len(data)-1):
-            tmp = data.get(f'part{{i2}}')
+            tmp = data.get(f'part{i2}')
             vol = tmp['vol']
             # plate가 ext 포지션일 때는 name을 기준으로 well을 정해두기.
             src = eval(tmp['plate']).wells_by_name()[tmp['well']]
@@ -146,8 +151,8 @@ def run(protocol: protocol_api.ProtocolContext):
     ## Thermocycling
     module_thermocycler.set_lid_temperature(90)
     
-    profile = [{{'temperature': 37, 'hold_time_minutes':1}},
-            {{'temperature': 16, 'hold_time_minutes': 1}}]
+    profile = [{'temperature': 37, 'hold_time_minutes':1},
+            {'temperature': 16, 'hold_time_minutes': 1}]
 
     module_thermocycler.execute_profile(steps=profile, repetitions=30, block_max_volume=20)
     module_thermocycler.deactivate_lid()
