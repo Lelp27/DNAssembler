@@ -19,6 +19,7 @@ metadata = {{
 # Parameters from protocol writer.
 
 META_DATA = {meta_data}
+RUN_THERMO = {thermocycler}
 
 
 def run(protocol: protocol_api.ProtocolContext):
@@ -49,7 +50,6 @@ def run(protocol: protocol_api.ProtocolContext):
     enz_mix = EXT['D1']
     DW = EXT['D5']
 
-
     # Protocol
     ## Functions
     def enzyme_transfer(pipette, volume, src, dest, delay_second=[0, 0],
@@ -60,8 +60,7 @@ def run(protocol: protocol_api.ProtocolContext):
         if asp_rate:
             pipette.flow_rate.aspirate=asp_rate
         if dis_rate:
-            pipette.flow_rate.dispense=dis_rate            
-
+            pipette.flow_rate.dispense=dis_rate
         if pipette._has_tip == False:
             pipette.pick_up_tip()
 
@@ -83,53 +82,13 @@ def run(protocol: protocol_api.ProtocolContext):
         if top_delay:
             pipette.move_to(src.top(z=-3))
             protocol.delay(seconds=top_delay[1])
-        if drop_tip:    
+        if drop_tip:
             pipette.drop_tip()
 
+    ### Transfer
     if module_thermocycler.lid_position == 'close':
         module_thermocycler.open_lid()
 
-    ## Enzyme Transfer
-    ### get repeated_use value
-    enz_dis_num = (19.5 / enz_vol)
-    if enz_dis_num > 4:
-        enz_dis_num = 4
-    else:
-        enz_dis_num = floor(enz_dis_num)
-
-    ### Enzyme distribute
-    src = enz_mix
-    dest_wells = assemble_plate.wells()[:len(well_data)]
-
-    n = 0
-    while(1):
-        if n + enz_dis_num > len(well_data):
-            dest_tmp = dest_wells[n:]
-        else:
-            dest_tmp = dest_wells[n:n+enz_dis_num]
-
-        if p20_sin._has_tip == False:
-            p20_sin.pick_up_tip()
-        p20_sin.flow_rate.aspirate = 3
-        p20_sin.flow_rate.dispense = 3
-        p20_sin.aspirate(enz_vol*enz_dis_num + 0.5, src)
-        #delay
-        protocol.delay(seconds=1)
-        #topdelay
-        p20_sin.move_to(src.top(z=-3))
-        protocol.delay(seconds=1)
-
-        for dest in dest_tmp:
-            p20_sin.dispense(enz_vol, dest)
-            #delay
-            protocol.delay(seconds=1)
-
-        p20_sin.drop_tip()
-        n += enz_dis_num
-        if n > enz_dis_num:
-            break
-
-    ### Part Transfer
     for i in range(len(well_data)):
         data = well_data[i]
         dest = assemble_plate.wells()[i]
@@ -144,17 +103,22 @@ def run(protocol: protocol_api.ProtocolContext):
 
 
     ## Thermocycling
-    module_thermocycler.set_lid_temperature(90)
+
+    if RUN_THERMO:
+        module_thermocycler.set_lid_temperature(90)
+        
+        profile = [{{'temperature': 37, 'hold_time_minutes':1}},
+                {{'temperature': 16, 'hold_time_minutes': 1}}]
+
+        module_thermocycler.execute_profile(steps=profile, repetitions=30, block_max_volume=20)
+        module_thermocycler.deactivate_lid()
+        module_thermocycler.set_block_temperature(4, hold_time_minutes=5)
+
+        protocol.pause("Protocol END \nIf you close this message, thermocycler open and deactivate.")
+        module_thermocycler.deactivate()
+        module_thermocycler.open_lid()
     
-    profile = [{{'temperature': 37, 'hold_time_minutes':1}},
-            {{'temperature': 16, 'hold_time_minutes': 1}}]
-
-    module_thermocycler.execute_profile(steps=profile, repetitions=30, block_max_volume=20)
-    module_thermocycler.deactivate_lid()
-    module_thermocycler.set_block_temperature(4, hold_time_minutes=5)
-
-    protocol.pause("Protocol END \nIf you close this message, thermocycler open and deactivate.")
-    module_thermocycler.deactivate()
-    module_thermocycler.open_lid()
+    else:
+        protocol.comment('Protocol END.')
 
     protocol.disconnect()

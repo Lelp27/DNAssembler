@@ -74,10 +74,9 @@ def calculate_metadata(**kwargs):
     """
     input_path, db_path, final_volume
     """
-    pass
     ## input parameter
-    db = pd.read_excel(db_path)
-    wells = pd.read_excel(input_path).iloc()[:,:2].fillna(0)
+    db = pd.read_excel(kwargs['db_path'])
+    wells = pd.read_excel(kwargs['input_path']).iloc()[:,:2].fillna(0)
     well_parts = [i.split('_') for i in wells['DNA']]
     part_list = list(set(sum(well_parts, [])))
     part_check(part_list, db)
@@ -102,7 +101,7 @@ def calculate_metadata(**kwargs):
     meta_data = {}
     n, well_data = 1, {}
     for well in wells.iloc():
-        well_data[f'well{n}'] = assembly(well, part_list, part_list_dna, final_volume)
+        well_data[f'well{n}'] = assembly(well, part_list, part_list_dna, kwargs['final_volume'])
         n+=1
 
     meta_data['well_data'] = well_data
