@@ -28,6 +28,9 @@ python assembly_writer -i {input} -r {db} -t {template.py} -o {output_path}
 
 ## DB architecture
 
+> Colume : Part number, target volume 
+> * All data should be separated with underbar ('_').
+
 |DNA|Volume|
 |---|---|
 |v1_p12_r23_t2|3_1.2_2.1_1.5|
