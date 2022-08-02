@@ -18,17 +18,6 @@ def get_args():
     return (args)
 
 
-
-"""
-# calculate meta_data
-## Parameters for data calculation
-input_path = '/mnt/c/workspace/git/DNAssembler/DNAssembly/assembly_input.xlsx'
-db_path = '/mnt/c/workspace/git/DNAssembler/DNAssembly/Part_DB_ot2.xlsx'
-template_path = '/mnt/c/workspace/git/DNAssembler/DNAssembly/assembly_template.py'
-output_path = '/mnt/c/workspace/git/DNAssembler/test.py'
-final_volume = 16
-thermocycler = True #default False
-"""
 def main():
     args=get_args()
     final_volume = 16

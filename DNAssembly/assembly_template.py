@@ -1,6 +1,8 @@
 from opentrons import types, protocol_api
 from math import floor
 
+#|# Verified at 2022-08-02 by kun without Thermocycler. #|#
+
 #|# DNA assembly template script. #|#
 #|# Don't Run This script directly with OT2! #|#
 
@@ -35,7 +37,7 @@ def run(protocol: protocol_api.ProtocolContext):
     {load_plate}
 
     assemble_plate = module_thermocycler.load_labware("biorad_96_wellplate_200ul_pcr")
-    EXT = protocol.load_labware('opentrons_24_tuberack_eppendorf_1.5ml_safelock_snapcap', 9)
+    ext = protocol.load_labware('opentrons_24_tuberack_eppendorf_1.5ml_safelock_snapcap', 9)
     trash = protocol.loaded_labwares[12]["A1"]
 
     tiprack_20_1 = protocol.load_labware("opentrons_96_tiprack_20ul", 6)
@@ -47,8 +49,8 @@ def run(protocol: protocol_api.ProtocolContext):
 
     ## Reagents
     ### Every reagent should be in 1.5ml Bioneer screw tube.
-    enz_mix = EXT['D1']
-    DW = EXT['D5']
+    #enz_mix = EXT['D1']
+    DW = ext['D1']
 
     # Protocol
     ## Functions
@@ -85,23 +87,50 @@ def run(protocol: protocol_api.ProtocolContext):
         if drop_tip:
             pipette.drop_tip()
 
-    ### Transfer
+    ## Transfer
     if module_thermocycler.lid_position == 'close':
         module_thermocycler.open_lid()
 
-    for i in range(len(well_data)):
-        data = well_data[i]
-        dest = assemble_plate.wells()[i]
+
+    ### DW Transfer
+    tip_count = 0
+    for i1 in range(len(well_data)):
+        if tip_count == 3:
+            p20_sin.drop_tip()
+            tip_count = 0
+        data = well_data[f'well{{i1+1}}']['meta']
+        dest = assemble_plate.wells()[i1]
+        src = DW
+        vol = float(data['DW'])
+
+        enzyme_transfer(p20_sin, vol, src, dest,
+                        asp_rate=5, dis_rate=5, drop_tip=False)
+        tip_count += 1
+
+    p20_sin.drop_tip()
+
+    ### Part Transfer
+    for i1 in range(len(well_data)):
+        data = well_data.get(f'well{{i1+1}}')
+        dest = assemble_plate.wells()[i1]
 
         for i2 in range(len(data)-1):
-            tmp = data.get(f'part{{i2}}')
-            vol = tmp['vol']
-            # plate가 ext 포지션일 때는 name을 기준으로 well을 정해두기.
+            tmp = data.get(f'part{{i2+1}}')
+            vol = float(tmp['vol'])
+
             src = eval(tmp['plate']).wells_by_name()[tmp['well']]
             enzyme_transfer(p20_sin, vol, src, dest,
                             asp_rate = 5, dis_rate =5, drop_tip=True)
-
-
+        
+        """
+        #DW transfer
+        tmp = data['meta']
+        src = DW
+        vol = float(tmp['DW'])
+        
+        enzyme_transfer(p20_sin, vol, src, dest,
+                        asp_rate=5, dis_rate=5, drop_tip=True)
+        """
     ## Thermocycling
 
     if RUN_THERMO:
@@ -120,5 +149,3 @@ def run(protocol: protocol_api.ProtocolContext):
     
     else:
         protocol.comment('Protocol END.')
-
-    protocol.disconnect()
