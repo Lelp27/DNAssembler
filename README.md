@@ -26,10 +26,10 @@ Now it support only xlsx.
 python assembly_writer -i {input} -r {db} -t {template.py} -o {output_path}
 ```
 
-## DB information
+## DB architechture
 
---------
-DNA | Volume
---------
-v1_p12_r1_t23 | 3_2.1_1.4_1.1
---------
+|DNA|Volume|
+|---|---|
+|   |   |
+|   |   |
+|   |   |
