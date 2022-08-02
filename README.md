@@ -25,3 +25,9 @@ Now it support only xlsx.
 ``` python
 python assembly_writer -i {input} -r {db} -t {template.py} -o {output_path}
 ```
+
+## DB information
+
+--------
+DNA | Volume
+--------
