@@ -31,3 +31,5 @@ python assembly_writer -i {input} -r {db} -t {template.py} -o {output_path}
 --------
 DNA | Volume
 --------
+v1_p12_r1_t23 | 3_2.1_1.4_1.1
+--------
