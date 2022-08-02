@@ -34,5 +34,5 @@ python assembly_writer -i {input} -r {db} -t {template.py} -o {output_path}
 |DNA|Volume|
 |---|---|
 |v1_p12_r23_t2|3_1.2_2.1_1.5|
-|   |   |
-|   |   |
+|p1_r5_t7|2_3_1|
+|r12_t21|5_3|
