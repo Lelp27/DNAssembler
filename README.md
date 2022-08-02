@@ -8,7 +8,7 @@ Also, can run the thermocycler involved in OT2.
 ## Deck Position
 
 The Deck positon can change with assemble_template.py file
-![Deck_position](/OT2_assembler-deck.png =250x)
+![Deck_position](/OT2_assembler-deck.png){:height="36px" width="36px"}
 
 ## Usage
 
