@@ -1,5 +1,8 @@
 # DNA assembly builder (dasbuilder) with OT2
 
+Move to [automated-protocol-ot2](https://github.com/Lelp27/automated-protocol-ot2)
+
+
 DNA part assembly with OT2 liquid handler.  
 It makes a protocol for assemble DNA parts on 96-well plate.  
 Also, can run the thermocycler involved in OT2.  
